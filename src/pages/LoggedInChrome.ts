@@ -2,14 +2,13 @@ import type { Locator, Page } from '@playwright/test';
 
 export class LoggedInChrome {
   readonly page: Page;
-  readonly signedInHeading: Locator;
+  readonly accountName: Locator;
   readonly userMenu: Locator;
   readonly logOut: Locator;
 
-  constructor(page: Page) {
+  constructor(page: Page, accountName: string) {
     this.page = page;
-    this.signedInHeading = page.getByRole('heading', { name: /^Hi,/i });
-    // Product-picker chrome uses a 0×0 Bootstrap toggle; click via DOM.
+    this.accountName = page.getByRole('banner').getByRole('button', { name: accountName, exact: true });
     this.userMenu = page.locator('#user_menu__BV_toggle_');
     this.logOut = page.locator('#logout_button');
   }

@@ -1,4 +1,5 @@
 import { test as bddTest, createBdd } from 'playwright-bdd';
+import { requireAccountName } from '../config/env';
 import { BrainPopLoginPage } from '../pages/BrainPopLoginPage';
 import { LoggedInChrome } from '../pages/LoggedInChrome';
 import { ApiClient } from '../utils/api/client';
@@ -20,7 +21,7 @@ export const test = bddTest.extend<CustomFixtures>({
     await use(new BrainPopLoginPage(page, testData.login.loginErrorPattern));
   },
   loggedInChrome: async ({ page }, use) => {
-    await use(new LoggedInChrome(page));
+    await use(new LoggedInChrome(page, requireAccountName()));
   },
   testData: async ({}, use) => {
     await use(loadTestData());

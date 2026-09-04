@@ -13,11 +13,9 @@ jobs:
       matrix:
         browser: [chromium, firefox]
     env:
+      # URLs and the test account both come from test-data/dev/env.json.
       ENV: dev
       CI: true
-      BASE_URL: https://www.brainpop.com/login/
-      BP_USERNAME: qatest2026
-      BP_PASSWORD: brainp0p
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

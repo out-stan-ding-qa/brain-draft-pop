@@ -13,9 +13,7 @@
     "test:a11y": "npm run gen && playwright test --grep @a11y",
     "test:ci": "npm run gen && playwright test --grep-invert \"@failing|@visual|@known-issue\"",
     "test:demo-failures": "npm run gen && playwright test --grep \"@failing\"",
-    "test:mobile": "cross-env MOBILE=1 npm run gen && playwright test --grep-invert \"@failing|@visual|@known-issue\"",
-    "report:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report",
-    "report:features": "node -e \"require('child_process').exec((process.platform==='win32'?'start ':process.platform==='darwin'?'open ':'xdg-open ')+'feature-report/index.html')\""
+    "test:mobile": "cross-env MOBILE=1 npm run gen && playwright test --grep-invert \"@failing|@visual|@known-issue\""
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",

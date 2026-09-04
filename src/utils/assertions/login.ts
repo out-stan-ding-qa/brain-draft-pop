@@ -5,13 +5,13 @@ import { LOGIN_ENDPOINT } from '../api/loginApi';
 
 export async function expectLoggedIn(chrome: LoggedInChrome, loginPage: BrainPopLoginPage): Promise<void> {
   await expect(loginPage.username).toBeHidden({ timeout: 20_000 });
-  await expect(chrome.signedInHeading).toBeVisible({ timeout: 20_000 });
+  await expect(chrome.accountName).toBeVisible({ timeout: 20_000 });
 }
 
 export async function expectLoginRejected(loginPage: BrainPopLoginPage, chrome: LoggedInChrome): Promise<void> {
   await expect(loginPage.username).toBeVisible();
   await expect(loginPage.error.first()).toBeVisible();
-  await expect(chrome.signedInHeading).toHaveCount(0);
+  await expect(chrome.accountName).toHaveCount(0);
 }
 
 export async function expectRequiredCredentialsNotAccepted(
@@ -22,11 +22,11 @@ export async function expectRequiredCredentialsNotAccepted(
   const usernameEmpty = await loginPage.username.inputValue();
   const passwordEmpty = await loginPage.password.inputValue();
   expect(usernameEmpty === '' || passwordEmpty === '').toBeTruthy();
-  await expect(chrome.signedInHeading).toHaveCount(0);
+  await expect(chrome.accountName).toHaveCount(0);
 }
 
 export async function expectSessionEnded(loginPage: BrainPopLoginPage, chrome: LoggedInChrome): Promise<void> {
-  await expect(chrome.signedInHeading).toHaveCount(0);
+  await expect(chrome.accountName).toHaveCount(0);
   await expect(chrome.page.getByRole('link', { name: 'Log In' }).first().or(loginPage.username)).toBeVisible({
     timeout: 20_000,
   });

@@ -125,10 +125,11 @@ like failures.
 
 | Variable | Purpose |
 | --- | --- |
-| `ENV` | `dev` \| `staging` \| `prod` (optional `test-data/<env>/` overrides shared files in `test-data/`) |
-| `BASE_URL` | AUT origin (default login URL) |
-| `API_BASE_URL` | Authentication API used by `@api` tests (default `https://api.brainpop.com`) |
-| `BP_USERNAME` / `BP_PASSWORD` | QA login |
+| `ENV` | `dev` \| `staging` \| `prod` — selects `test-data/<env>/`, including `env.json` for the URLs and the test account |
+| `BASE_URL` | Optional override of `env.json` `baseURL` |
+| `API_BASE_URL` | Optional override of `env.json` `apiBaseURL` |
+| `BP_USERNAME` / `BP_PASSWORD` | Optional override of `env.json` `account.username` / `account.password` |
+| `BP_ACCOUNT_NAME` | Optional override of `env.json` `account.accountName` |
 | `WORKERS` | Parallelism (default 4 locally, 2 in CI) |
 | `RETRIES` | Failed-test retries (default 0 locally, 2 in CI) |
 | `MOBILE=1` | Extra iPhone 13 project |
@@ -139,7 +140,7 @@ like failures.
 Five reporters run on every execution: `list` (console), `html`
 (`playwright-report/`), `allure-playwright` (`allure-results/`), `junit` (`junit.xml`), and
 the custom `featureReporter`, which writes both `feature-report/` and `summary.json`.
-Videos/traces on first retry under `test-results/`.
+Failed UI tests keep a video under `test-results/` (`video: 'retain-on-failure'`). Traces are captured on first retry.
 
 ```bash
 npx playwright show-report   # Playwright HTML report: traces, video, timeline
@@ -237,4 +238,4 @@ two synthetic failures instead of the actual run.
 1. Create a POM under `src/pages/`.
 2. Register it as a fixture in `src/fixtures/baseTest.ts`.
 3. Add a `.feature` under `tests/e2e/` or `tests/api/` and steps under `tests/**/steps/` using `Given`/`When`/`Then` from `baseTest`.
-4. Put shared data in `test-data/` and env-specific overrides in `test-data/<env>/`. Keep locators out of Gherkin; keep assertions in `src/utils/assertions/`. Resolve valid / invalid / blank credentials through [`src/utils/credentials.ts`](src/utils/credentials.ts), not in the feature file.
+4. Put shared data in `test-data/` and env-specific values in `test-data/<env>/` (`env.json` for the URLs and the test account, plus any overrides of shared files). Keep locators out of Gherkin; keep assertions in `src/utils/assertions/`. Resolve valid / invalid / blank credentials through [`src/utils/credentials.ts`](src/utils/credentials.ts), not in the feature file.

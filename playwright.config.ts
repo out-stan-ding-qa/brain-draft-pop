@@ -7,9 +7,6 @@ const testDir = defineBddConfig({
   steps: ['tests/**/steps/**/*.ts', 'src/fixtures/baseTest.ts'],
 });
 
-// allure-playwright reads per-project config that does not exist when replaying
-// blob reports, so it must stay out of the merge step. Allure needs no merging
-// anyway: results directories from each browser combine by plain union.
 const allureReporter: ReporterDescription[] =
   process.env.ALLURE === '0' ? [] : [['allure-playwright', { resultsDir: 'allure-results' }]];
 
@@ -24,9 +21,6 @@ if (env.mobile) {
 
 export default defineConfig({
   testDir,
-  // testDir is the generated .features-gen folder, which is gitignored and
-  // rewritten by bddgen, so baselines must live beside the source .feature files
-  // to survive. Relative templates resolve against the config directory.
   snapshotPathTemplate: '{testFileDir}/__screenshots__/{arg}{-projectName}-{platform}{ext}',
   timeout: 60_000,
   expect: { timeout: 12_000 },
@@ -44,7 +38,7 @@ export default defineConfig({
   use: {
     baseURL: env.baseURL,
     trace: 'on-first-retry',
-    video: 'on-first-retry',
+    video: 'retain-on-failure',
     screenshot: 'only-on-failure',
     actionTimeout: 15_000,
   },
