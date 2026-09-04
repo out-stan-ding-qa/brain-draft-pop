@@ -44,6 +44,31 @@ npx playwright test --grep @negative
 npx playwright test --headed --grep @smoke
 ```
 
+#### Combining tags
+
+There is no `--tag` flag. `--grep` is a regular expression tested against a single string per
+test made of the project name, file name, describe titles, test title, and tags joined by
+spaces — so combining tags is a regex question.
+
+```bash
+# both tags, in any order
+npx playwright test --grep "(?=.*@login)(?=.*@smoke)"
+
+# either tag
+npx playwright test --grep "@login|@smoke"
+
+# one tag but not another
+npx playwright test --grep @login --grep-invert @logout
+```
+
+Use the lookahead form rather than `--grep "@login @smoke"`. The latter is a literal match that
+only works while those two tags stay adjacent and in that order; adding a third tag between
+them makes it silently match nothing.
+
+Keep each flag immediately followed by its own value. In
+`--grep --project=chromium "@login @smoke"`, `--grep` takes `--project=chromium` as its
+pattern and the quoted tags fall through as a filename filter, so nothing runs.
+
 | Feature | File | Typical filter |
 | --- | --- | --- |
 | Login UI | [`tests/e2e/login.feature`](tests/e2e/login.feature) | `@login`, `@logout` |
