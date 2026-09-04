@@ -40,10 +40,21 @@ export class BrainPopLoginPage {
     await this.submit.click();
   }
 
+  async submitWithEnter(): Promise<void> {
+    await this.password.press('Enter');
+  }
+
   async login(username: string, password: string): Promise<void> {
     await this.fillUsername(username);
     await this.fillPassword(password);
     await this.submitLogin();
+  }
+
+  async typeWithKeyboard(username: string, password: string): Promise<void> {
+    await this.username.focus();
+    await this.page.keyboard.type(username);
+    await this.page.keyboard.press('Tab');
+    await this.page.keyboard.type(password);
   }
 
   /**

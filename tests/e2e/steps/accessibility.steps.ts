@@ -5,6 +5,7 @@ import {
   expectNoViolationsForGroup,
   isRuleGroup,
 } from '../../../src/utils/a11y/axe';
+import { expectEnterSubmitsLogin } from '../../../src/utils/assertions/login';
 
 Then('the page should satisfy the {string} accessibility rules', async ({ page }, group: string) => {
   if (!isRuleGroup(group)) {
@@ -34,20 +35,10 @@ Then(
   },
 );
 
-When('I type credentials using only the keyboard', async ({ page, loginPage, testData }) => {
-  await loginPage.username.focus();
-  await page.keyboard.type(testData.login.invalidUsername);
-  await page.keyboard.press('Tab');
-  await page.keyboard.type(testData.login.wrongPassword);
+When('I type credentials using only the keyboard', async ({ loginPage, testData }) => {
+  await loginPage.typeWithKeyboard(testData.login.invalidUsername, testData.login.wrongPassword);
 });
 
-Then('pressing Enter should submit the login form', async ({ page, loginPage }) => {
-  // Assert on the outgoing request so the check does not depend on the
-  // response, which may be throttled when the suite runs in parallel.
-  const submission = page.waitForRequest(
-    (request) => request.url().includes('/api/login') && request.method() === 'POST',
-    { timeout: 15_000 },
-  );
-  await loginPage.password.press('Enter');
-  await submission;
+Then('pressing Enter should submit the login form', async ({ loginPage }) => {
+  await expectEnterSubmitsLogin(loginPage);
 });
