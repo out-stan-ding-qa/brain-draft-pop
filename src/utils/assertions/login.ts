@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { BrainPopLoginPage } from '../../pages/BrainPopLoginPage';
 import { LoggedInChrome } from '../../pages/LoggedInChrome';
 import { LOGIN_ENDPOINT } from '../api/loginApi';
@@ -8,16 +8,42 @@ export async function expectLoggedIn(chrome: LoggedInChrome, loginPage: BrainPop
   await expect(chrome.signedInHeading).toBeVisible({ timeout: 20_000 });
 }
 
-export async function expectLoginRejected(page: Page, loginPage: BrainPopLoginPage): Promise<void> {
+export async function expectLoginRejected(loginPage: BrainPopLoginPage, chrome: LoggedInChrome): Promise<void> {
   await expect(loginPage.username).toBeVisible();
-  await expect(page.getByRole('heading', { name: /^Hi,/i })).toHaveCount(0);
+  await expect(loginPage.error.first()).toBeVisible();
+  await expect(chrome.signedInHeading).toHaveCount(0);
 }
 
-export async function expectSessionEnded(page: Page, loginPage: BrainPopLoginPage): Promise<void> {
-  await expect(page.getByRole('heading', { name: /^Hi,/i })).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Log In' }).first().or(loginPage.username)).toBeVisible({
+export async function expectRequiredCredentialsNotAccepted(
+  loginPage: BrainPopLoginPage,
+  chrome: LoggedInChrome,
+): Promise<void> {
+  await expect(loginPage.username).toBeVisible();
+  const usernameEmpty = await loginPage.username.inputValue();
+  const passwordEmpty = await loginPage.password.inputValue();
+  expect(usernameEmpty === '' || passwordEmpty === '').toBeTruthy();
+  await expect(chrome.signedInHeading).toHaveCount(0);
+}
+
+export async function expectSessionEnded(loginPage: BrainPopLoginPage, chrome: LoggedInChrome): Promise<void> {
+  await expect(chrome.signedInHeading).toHaveCount(0);
+  await expect(chrome.page.getByRole('link', { name: 'Log In' }).first().or(loginPage.username)).toBeVisible({
     timeout: 20_000,
   });
+}
+
+export async function expectLoginKeyboardFocusOrder(loginPage: BrainPopLoginPage): Promise<void> {
+  await loginPage.focusUsername();
+  await expect(loginPage.username).toBeFocused();
+
+  await loginPage.pressTab();
+  await expect(loginPage.password).toBeFocused();
+
+  await loginPage.pressTab();
+  await expect(loginPage.showPassword).toBeFocused();
+
+  await loginPage.pressTab();
+  await expect(loginPage.submit).toBeFocused();
 }
 
 /**

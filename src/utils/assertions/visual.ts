@@ -1,16 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, type Page, type TestInfo } from '@playwright/test';
+import { CookieBanner } from '../../pages/components/CookieBanner';
 import { logger } from '../logger';
 
 export const LOGIN_VISUAL_SNAPSHOT = 'login.png';
 
-const COOKIE_BANNER = '#onetrust-banner-sdk';
-
 function screenshotOptions(page: Page) {
   return {
     fullPage: true,
-    mask: [page.locator(COOKIE_BANNER)],
+    mask: [CookieBanner.locator(page)],
     animations: 'disabled' as const,
     caret: 'hide' as const,
     scale: 'css' as const,

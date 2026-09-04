@@ -4,9 +4,9 @@ import { Given, Then, When } from '../../../src/fixtures/baseTest';
 import {
   expectLoggedIn,
   expectLoginRejected,
+  expectRequiredCredentialsNotAccepted,
   expectSessionEnded,
 } from '../../../src/utils/assertions/login';
-import { expectPageMatchesVisualBaseline } from '../../../src/utils/assertions/visual';
 import { resolvePassword, resolveUsername } from '../../../src/utils/credentials';
 
 Given('I am on the BrainPOP login page', async ({ loginPage }) => {
@@ -40,36 +40,18 @@ Then('I should be logged in successfully', async ({ loggedInChrome, loginPage })
   await expectLoggedIn(loggedInChrome, loginPage);
 });
 
-Then('login should be rejected', async ({ page, loginPage }) => {
-  await expectLoginRejected(page, loginPage);
+Then('login should be rejected', async ({ loginPage, loggedInChrome }) => {
+  await expectLoginRejected(loginPage, loggedInChrome);
 });
 
-Then('required credentials should not be accepted', async ({ page, loginPage }) => {
-  await expect(loginPage.username).toBeVisible();
-  const usernameEmpty = await loginPage.username.inputValue();
-  const passwordEmpty = await loginPage.password.inputValue();
-  expect(usernameEmpty === '' || passwordEmpty === '').toBeTruthy();
-  await expect(page.getByRole('heading', { name: /^Hi,/i })).toHaveCount(0);
+Then('required credentials should not be accepted', async ({ loginPage, loggedInChrome }) => {
+  await expectRequiredCredentialsNotAccepted(loginPage, loggedInChrome);
 });
 
-Then('the authenticated session should have ended', async ({ page, loginPage }) => {
-  await expectSessionEnded(page, loginPage);
+Then('the authenticated session should have ended', async ({ loginPage, loggedInChrome }) => {
+  await expectSessionEnded(loginPage, loggedInChrome);
 });
 
 Then('the forgot credentials link should be visible', async ({ loginPage }) => {
   await expect(loginPage.forgotLink.first()).toBeVisible();
-});
-
-Then('the page title should be {string}', async ({ page }, expected: string) => {
-  await expect(page).toHaveTitle(expected);
-});
-
-Then('I should see a login success toast', async ({ page }) => {
-  await expect(page.getByRole('status').filter({ hasText: /welcome back, you are in/i })).toBeVisible({
-    timeout: 3_000,
-  });
-});
-
-Then('the login page visual snapshot should match', async ({ page, $testInfo }) => {
-  await expectPageMatchesVisualBaseline(page, $testInfo);
 });

@@ -1,11 +1,10 @@
-import { expect } from '@playwright/test';
 import { Then, When } from '../../../src/fixtures/baseTest';
 import {
   expectNoOtherSeriousViolations,
   expectNoViolationsForGroup,
   isRuleGroup,
 } from '../../../src/utils/a11y/axe';
-import { expectEnterSubmitsLogin } from '../../../src/utils/assertions/login';
+import { expectEnterSubmitsLogin, expectLoginKeyboardFocusOrder } from '../../../src/utils/assertions/login';
 
 Then('the page should satisfy the {string} accessibility rules', async ({ page }, group: string) => {
   if (!isRuleGroup(group)) {
@@ -20,18 +19,8 @@ Then('the page should have no other serious accessibility violations', async ({ 
 
 Then(
   'tabbing from the username field should reach the password, reveal, and submit controls',
-  async ({ page, loginPage }) => {
-    await loginPage.username.focus();
-    await expect(loginPage.username).toBeFocused();
-
-    await page.keyboard.press('Tab');
-    await expect(loginPage.password).toBeFocused();
-
-    await page.keyboard.press('Tab');
-    await expect(loginPage.showPassword).toBeFocused();
-
-    await page.keyboard.press('Tab');
-    await expect(loginPage.submit).toBeFocused();
+  async ({ loginPage }) => {
+    await expectLoginKeyboardFocusOrder(loginPage);
   },
 );
 

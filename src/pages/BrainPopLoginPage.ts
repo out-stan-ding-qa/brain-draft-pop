@@ -51,10 +51,18 @@ export class BrainPopLoginPage {
   }
 
   async typeWithKeyboard(username: string, password: string): Promise<void> {
-    await this.username.focus();
+    await this.focusUsername();
     await this.page.keyboard.type(username);
-    await this.page.keyboard.press('Tab');
+    await this.pressTab();
     await this.page.keyboard.type(password);
+  }
+
+  async focusUsername(): Promise<void> {
+    await this.username.focus();
+  }
+
+  async pressTab(): Promise<void> {
+    await this.page.keyboard.press('Tab');
   }
 
   /**
