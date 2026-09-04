@@ -113,14 +113,3 @@ export async function publishVitals(testInfo: TestInfo, vitals: NavigationVitals
     }
   }
 }
-
-/**
- * Optional Lighthouse — enable with PERF_LIGHTHOUSE=1 and wire chrome-launcher in CI.
- * Left as a documented extension point (not run in default suite).
- */
-export async function maybeRunLighthouse(): Promise<void> {
-  if (process.env.PERF_LIGHTHOUSE !== '1') {
-    return;
-  }
-  logger.warn('lighthouse-skipped', { reason: 'Install lighthouse/chrome-launcher and invoke from CI when needed' });
-}

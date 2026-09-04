@@ -7,7 +7,6 @@ function write(level: string, message: string, fields?: LogFields): void {
     message,
     ...fields,
   });
-  // eslint-disable-next-line no-console
   console.log(line);
 }
 

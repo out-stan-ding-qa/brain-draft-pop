@@ -2,7 +2,11 @@
 
 Modular UI/API tests for the BrainPOP login experience using **Playwright Test**, **playwright-bdd** (Gherkin), TypeScript, page objects, and fixtures.
 
+Edit `tests/**/*.feature` and the step files next to them. Playwright runs generated specs under `.features-gen/`, which is gitignored and rewritten by `bddgen` on every test run — do not edit those files, and do not pass a `.feature` path to `playwright test`.
+
 ## Install
+
+Requires **Node.js 20+**.
 
 ```bash
 npm ci
@@ -14,21 +18,46 @@ On Windows PowerShell, copy env with `Copy-Item .env.example .env`. Credentials 
 
 ## Run
 
+`npm test` and the other `test:*` scripts run `bddgen` first (`npm run gen`), so you only need a separate generate step when you invoke `playwright test` yourself.
+
 ```bash
-npm test                 # full suite (includes two @failing demos)
+npm test                 # full suite: UI + API (includes two @failing demos)
 npm run test:e2e         # same as npm test
 npm run test:smoke       # @smoke only
 npm run test:a11y        # accessibility scenarios only
 npm run test:ci          # exclude @failing, @visual, @known-issue (CI gate)
 npm run test:demo-failures
 npm run test:mobile      # adds iPhone 13 project (MOBILE=1)
+npm run gen              # clear allure-results/ and regenerate .features-gen/
 ```
 
-Subsets: `--project=chromium`, `--grep @logout`, `--grep @negative`, `--grep @api`.
+### Subsets
+
+Filter by tag or title after generating. `testDir` is `.features-gen/`, so grep the tag rather than the source `.feature` file.
+
+```bash
+npm run gen
+npx playwright test --grep @api
+npx playwright test --grep @api --project=chromium
+npx playwright test --grep @logout
+npx playwright test --grep @negative
+npx playwright test --headed --grep @smoke
+```
+
+| Feature | File | Typical filter |
+| --- | --- | --- |
+| Login UI | [`tests/e2e/login.feature`](tests/e2e/login.feature) | `@login`, `@logout` |
+| Login API | [`tests/api/login-api.feature`](tests/api/login-api.feature) | `@api` |
+| Accessibility | [`tests/e2e/accessibility.feature`](tests/e2e/accessibility.feature) | `@a11y` |
+| Performance | [`tests/e2e/performance.feature`](tests/e2e/performance.feature) | `@perf` |
+| Visual | [`tests/e2e/visual.feature`](tests/e2e/visual.feature) | `@visual` |
+| Reporter demos | [`tests/e2e/failing.feature`](tests/e2e/failing.feature) | `@failing` |
 
 | Tag | Meaning |
 | --- | --- |
 | `@smoke` | Core happy paths |
+| `@login` | UI authentication feature |
+| `@logout` | End-session scenario on the login feature |
 | `@negative` | Rejected or incomplete input |
 | `@a11y` / `@perf` | Accessibility and web vitals |
 | `@api` | Direct calls to the authentication endpoint |
@@ -36,35 +65,49 @@ Subsets: `--project=chromium`, `--grep @logout`, `--grep @negative`, `--grep @ap
 | `@visual` | Screenshot comparison, local only (see below) |
 | `@known-issue` | Genuine product defect, kept visible but outside the CI gate |
 
+`@mode:default` on the API feature is a playwright-bdd execution tag, not a filter. It runs those scenarios in order in one worker (overriding `fullyParallel`) without skipping later cases when one fails.
+
 ### Visual baselines
 
 Baselines live beside the feature that uses them, at
-`tests/e2e/__screenshots__/{name}-{project}-{platform}.png`, set by `snapshotPathTemplate`
+`tests/e2e/__screenshots__/login-{project}-{platform}.png`, set by `snapshotPathTemplate`
 in the config. They deliberately do **not** sit under Playwright's default location: `testDir`
 is the generated `.features-gen/` folder, which is gitignored and rewritten by `bddgen`, so
 baselines placed there are wiped on every run and can never be committed.
 
 Baselines are platform-stamped because a screenshot taken on Windows will not match one taken
-on the Linux CI runner. Commit the baselines for whichever platforms you intend to check, and
-regenerate with `--update-snapshots` when the UI legitimately changes. `@visual` is excluded
+on the Linux CI runner. A missing baseline is created from the current page and the scenario
+passes; later runs compare against that file. Refresh an existing baseline with:
+
+```bash
+npm run gen
+npx playwright test --grep @visual --update-snapshots
+```
+
+Commit the baselines for whichever platforms you intend to check. `@visual` is excluded
 from `test:ci` for this reason.
+
+### Rate limiting
 
 The suite authenticates a single shared QA account against production, and that endpoint
 throttles bursts of login attempts. Worker count is capped for that reason, the `@api`
-feature runs sequentially, and `LoginApi` backs off on HTTP 429. Raising `WORKERS` well
-above the default will cause throttled logins to look like failures.
+feature runs in-file sequentially (`@mode:default`), `LoginApi` backs off on HTTP 429,
+and the UI `loginUntilAccepted` helper re-submits when a throttled post leaves the form
+unchanged. Raising `WORKERS` well above the default will cause throttled logins to look
+like failures.
 
 ## Configuration
 
 | Variable | Purpose |
 | --- | --- |
-| `ENV` | `dev` \| `staging` \| `prod` (selects `test-data/<env>/`) |
+| `ENV` | `dev` \| `staging` \| `prod` (optional `test-data/<env>/` overrides shared files in `test-data/`) |
 | `BASE_URL` | AUT origin (default login URL) |
 | `API_BASE_URL` | Authentication API used by `@api` tests (default `https://api.brainpop.com`) |
 | `BP_USERNAME` / `BP_PASSWORD` | QA login |
-| `WORKERS` / `RETRIES` | Parallelism and retries (defaults to 4 workers, 2 in CI) |
+| `WORKERS` | Parallelism (default 4 locally, 2 in CI) |
+| `RETRIES` | Failed-test retries (default 0 locally, 2 in CI) |
 | `MOBILE=1` | Extra iPhone 13 project |
-| `REMOTE_PROVIDER` | `none` (default) \| `selenium` \| `browserstack` \| `lambdatest` (scaffold only) |
+| `DEBUG_TESTS=1` | Extra JSON debug logs from fixtures |
 
 ## Reports
 
@@ -143,9 +186,6 @@ Any scenario can add the capture step — it is not limited to
 `test-data/<env>/performance.json` and are deliberately loose, since these run against
 production over whatever connection the runner has; tighten them once you have a baseline.
 
-`PERF_LIGHTHOUSE=1` is a documented extension point for a full Lighthouse run in CI; it
-currently logs a skip until `lighthouse`/`chrome-launcher` are wired up.
-
 ## CI
 
 [`playwright.yml`](.github/workflows/playwright.yml) runs three jobs:
@@ -167,13 +207,9 @@ is deliberately not a CI step — running it after the real suite used to overwr
 `playwright-report/`, `junit.xml` and `summary.json`, so the published report described the
 two synthetic failures instead of the actual run.
 
-## Remote providers
-
-CI uses local Chromium and Firefox. To point at a grid, set `REMOTE_PROVIDER` and `REMOTE_WS_ENDPOINT` (plus vendor keys). Capability builders live in `src/config/remote.ts`.
-
 ## Add a page + scenario
 
 1. Create a POM under `src/pages/`.
 2. Register it as a fixture in `src/fixtures/baseTest.ts`.
 3. Add a `.feature` under `tests/e2e/` or `tests/api/` and steps under `tests/**/steps/` using `Given`/`When`/`Then` from `baseTest`.
-4. Put data in `test-data/<env>/`. Keep locators out of Gherkin; keep assertions in `src/utils/assertions/`.
+4. Put shared data in `test-data/` and env-specific overrides in `test-data/<env>/`. Keep locators out of Gherkin; keep assertions in `src/utils/assertions/`. Resolve valid / invalid / blank credentials through [`src/utils/credentials.ts`](src/utils/credentials.ts), not in the feature file.

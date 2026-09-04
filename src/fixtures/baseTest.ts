@@ -19,8 +19,8 @@ type CustomFixtures = {
 };
 
 export const test = bddTest.extend<CustomFixtures>({
-  loginPage: async ({ page }, use) => {
-    await use(new BrainPopLoginPage(page));
+  loginPage: async ({ page, testData }, use) => {
+    await use(new BrainPopLoginPage(page, testData.login.loginErrorPattern));
   },
   loggedInChrome: async ({ page }, use) => {
     await use(new LoggedInChrome(page));

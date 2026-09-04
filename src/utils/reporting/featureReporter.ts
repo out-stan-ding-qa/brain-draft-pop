@@ -291,7 +291,6 @@ function formatError(result: TestResult | undefined): string | undefined {
 }
 
 function stripAnsi(value: string): string {
-  // eslint-disable-next-line no-control-regex
   return value.replace(/\u001B\[[0-9;]*m/g, '');
 }
 

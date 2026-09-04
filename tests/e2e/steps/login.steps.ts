@@ -6,6 +6,7 @@ import {
   expectLoginRejected,
   expectSessionEnded,
 } from '../../../src/utils/assertions/login';
+import { expectPageMatchesVisualBaseline } from '../../../src/utils/assertions/visual';
 import { resolvePassword, resolveUsername } from '../../../src/utils/credentials';
 
 Given('I am on the BrainPOP login page', async ({ loginPage }) => {
@@ -35,12 +36,12 @@ When('I reload the page', async ({ page }) => {
   await page.reload();
 });
 
-Then('I should be logged in successfully', async ({ page, loggedInChrome, loginPage }) => {
-  await expectLoggedIn(page, loggedInChrome, loginPage);
+Then('I should be logged in successfully', async ({ loggedInChrome, loginPage }) => {
+  await expectLoggedIn(loggedInChrome, loginPage);
 });
 
-Then('login should be rejected', async ({ page, loginPage, testData }) => {
-  await expectLoginRejected(page, loginPage, new RegExp(testData.login.loginErrorPattern, 'i'));
+Then('login should be rejected', async ({ page, loginPage }) => {
+  await expectLoginRejected(page, loginPage);
 });
 
 Then('required credentials should not be accepted', async ({ page, loginPage }) => {
@@ -69,10 +70,6 @@ Then('I should see a login success toast', async ({ page }) => {
   });
 });
 
-Then('the login page visual snapshot should match', async ({ page }) => {
-  await expect(page).toHaveScreenshot('login.png', {
-    fullPage: true,
-    mask: [page.locator('#onetrust-banner-sdk, [id*="cookie" i], [class*="cookie" i]').first()],
-    maxDiffPixelRatio: 0.03,
-  });
+Then('the login page visual snapshot should match', async ({ page, $testInfo }) => {
+  await expectPageMatchesVisualBaseline(page, $testInfo);
 });

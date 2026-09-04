@@ -38,20 +38,27 @@ function readJsonIfExists(filePath: string): unknown | undefined {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-function readRequired<T>(dir: string, fileName: string): T {
-  const data = readJsonIfExists(path.join(dir, fileName)) as T | undefined;
+function sharedTestDataDir(): string {
+  return path.resolve(process.cwd(), 'test-data');
+}
+
+function readRequired<T>(fileName: string): T {
+  const override = readJsonIfExists(path.join(testDataDir(), fileName)) as T | undefined;
+  const shared = readJsonIfExists(path.join(sharedTestDataDir(), fileName)) as T | undefined;
+  const data = override ?? shared;
   if (!data) {
-    throw new Error(`Missing test data file "${fileName}" for ENV=${env.name} in ${dir}`);
+    throw new Error(
+      `Missing test data file "${fileName}" for ENV=${env.name} (checked ${testDataDir()} then ${sharedTestDataDir()})`,
+    );
   }
   return data;
 }
 
 export function loadTestData(): AppTestData {
-  const dir = testDataDir();
   return {
     env: env.name,
-    login: readRequired<LoginTestData>(dir, 'login.json'),
-    api: readRequired<ApiTestData>(dir, 'api.json'),
-    performance: readRequired<PerformanceBudget>(dir, 'performance.json'),
+    login: readRequired<LoginTestData>('login.json'),
+    api: readRequired<ApiTestData>('api.json'),
+    performance: readRequired<PerformanceBudget>('performance.json'),
   };
 }

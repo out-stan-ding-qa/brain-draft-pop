@@ -105,18 +105,6 @@ jobs:
             summary.json
           if-no-files-found: ignore
 
-      - name: Notify Slack or Teams
-        if: always()
-        continue-on-error: true
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          JOB_STATUS: ${{ needs.e2e.result }}
-        run: |
-          payload="{\"text\":\"Playwright: $JOB_STATUS — ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
-          if [ -n "$SLACK_WEBHOOK_URL" ]; then curl -sS -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"; fi
-          if [ -n "$TEAMS_WEBHOOK_URL" ]; then curl -sS -X POST -H 'Content-type: application/json' --data "$payload" "$TEAMS_WEBHOOK_URL"; fi
-
   publish-report:
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && github.event_name == 'push'
     needs: report

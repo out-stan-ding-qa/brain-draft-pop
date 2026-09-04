@@ -11,21 +11,21 @@ export class BrainPopLoginPage {
   readonly forgotLink: Locator;
   readonly error: Locator;
 
-  constructor(page: Page) {
+  constructor(page: Page, loginErrorPattern: string) {
     this.page = page;
     this.username = page.locator('#username').or(page.getByRole('textbox', { name: /^username:?$/i }));
     this.password = page.locator('#password-input').or(page.getByLabel(/^password:?$/i));
     this.showPassword = page.locator('#password-input_pass_checkbox').or(page.getByRole('checkbox', { name: /show password/i }));
     this.submit = page.locator('#login_button').or(page.getByRole('button', { name: 'Log In', exact: true }));
     this.forgotLink = page.getByRole('button', { name: /forgot username or password/i });
-    this.error = page.getByText(/did not match|do not match|incorrect|invalid|try again|couldn’t find/i);
+    this.error = page.getByText(new RegExp(loginErrorPattern, 'i'));
   }
 
   async goto(): Promise<void> {
     // '/' would resolve to the origin home page, not BASE_URL's /login path
     await this.page.goto(env.baseURL, { waitUntil: 'domcontentloaded' });
-    await new CookieBanner(this.page).dismissIfPresent();
     await expect(this.username).toBeVisible({ timeout: 30_000 });
+    await new CookieBanner(this.page).dismissIfPresent();
   }
 
   async fillUsername(value: string): Promise<void> {
@@ -66,19 +66,5 @@ export class BrainPopLoginPage {
 
       await this.page.waitForTimeout(1_000 * 2 ** (attempt - 1));
     }
-  }
-
-  async isUsernameMissing(): Promise<boolean> {
-    return this.page.evaluate((el) => {
-      const input = el as HTMLInputElement;
-      return !input.checkValidity();
-    }, await this.username.elementHandle());
-  }
-
-  async isPasswordMissing(): Promise<boolean> {
-    return this.page.evaluate((el) => {
-      const input = el as HTMLInputElement;
-      return !input.checkValidity();
-    }, await this.password.elementHandle());
   }
 }

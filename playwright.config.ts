@@ -1,7 +1,6 @@
 import { defineConfig, devices, type ReporterDescription } from '@playwright/test';
 import { defineBddConfig } from 'playwright-bdd';
 import { env } from './src/config/env';
-import { remoteConnectOptions } from './src/config/remote';
 
 const testDir = defineBddConfig({
   features: ['tests/e2e/**/*.feature', 'tests/api/**/*.feature'],
@@ -15,30 +14,12 @@ const allureReporter: ReporterDescription[] =
   process.env.ALLURE === '0' ? [] : [['allure-playwright', { resultsDir: 'allure-results' }]];
 
 const projects = [
-  {
-    name: 'chromium',
-    use: {
-      ...devices['Desktop Chrome'],
-      connectOptions: remoteConnectOptions(env.remoteProvider, 'chrome'),
-    },
-  },
-  {
-    name: 'firefox',
-    use: {
-      ...devices['Desktop Firefox'],
-      connectOptions: remoteConnectOptions(env.remoteProvider, 'firefox'),
-    },
-  },
+  { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+  { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
 ];
 
 if (env.mobile) {
-  projects.push({
-    name: 'iPhone 13',
-    use: {
-      ...devices['iPhone 13'],
-      connectOptions: remoteConnectOptions(env.remoteProvider, 'chrome'),
-    },
-  });
+  projects.push({ name: 'iPhone 13', use: { ...devices['iPhone 13'] } });
 }
 
 export default defineConfig({

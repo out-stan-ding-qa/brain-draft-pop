@@ -6,17 +6,15 @@
   },
   "description": "Playwright Test + Gherkin (playwright-bdd) framework for BrainPOP",
   "scripts": {
-    "bddgen": "bddgen",
     "gen": "node scripts/clean-reports.js && bddgen",
     "test": "npm run gen && playwright test",
-    "test:e2e": "npm run gen && playwright test",
+    "test:e2e": "npm test",
     "test:smoke": "npm run gen && playwright test --grep @smoke",
     "test:a11y": "npm run gen && playwright test --grep @a11y",
     "test:ci": "npm run gen && playwright test --grep-invert \"@failing|@visual|@known-issue\"",
     "test:demo-failures": "npm run gen && playwright test --grep \"@failing\"",
     "test:mobile": "cross-env MOBILE=1 npm run gen && playwright test --grep-invert \"@failing|@visual|@known-issue\"",
     "report:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report",
-    "report:html": "playwright show-report",
     "report:features": "node -e \"require('child_process').exec((process.platform==='win32'?'start ':process.platform==='darwin'?'open ':'xdg-open ')+'feature-report/index.html')\""
   },
   "devDependencies": {

@@ -1,10 +1,5 @@
 import type { Page, TestInfo } from '@playwright/test';
-import {
-  collectNavigationVitals,
-  maybeRunLighthouse,
-  publishVitals,
-  type NavigationVitals,
-} from './webVitals';
+import { collectNavigationVitals, publishVitals, type NavigationVitals } from './webVitals';
 
 /**
  * Scenario-scoped helper so steps stay thin: one call collects the timings and
@@ -21,7 +16,6 @@ export class PerformanceProbe {
   async capture(): Promise<NavigationVitals> {
     this.lastCapture = await collectNavigationVitals(this.page);
     await publishVitals(this.testInfo, this.lastCapture);
-    await maybeRunLighthouse();
     return this.lastCapture;
   }
 
