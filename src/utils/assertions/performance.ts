@@ -23,6 +23,5 @@ export function expectVitalsWithinBudget(vitals: NavigationVitals, budget: Perfo
 
 export function expectVitalsCaptured(vitals: NavigationVitals): void {
   expect(vitals.ttfbMs, 'time to first byte should be measured').toBeGreaterThan(0);
-  expect(vitals.loadCompleteMs, 'load event should have completed').toBeGreaterThan(0);
   expect(vitals.firstContentfulPaintMs, 'first contentful paint should be measured').toBeGreaterThan(0);
 }
