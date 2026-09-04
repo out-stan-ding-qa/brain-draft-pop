@@ -1,0 +1,8 @@
+{
+  "successStatus": 200,
+  "successCode": 1505,
+  "successMessage": "messages.LOGIN_SUCCESS",
+  "failureStatus": 400,
+  "failureCode": 1502,
+  "failureMessage": "messages.LOGIN_FAILED"
+}

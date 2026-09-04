@@ -1,0 +1,6 @@
+{
+  "ttfbMs": 3000,
+  "firstContentfulPaintMs": 6000,
+  "domContentLoadedMs": 8000,
+  "loadCompleteMs": 10000
+}

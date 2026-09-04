@@ -1,0 +1,79 @@
+name: Playwright
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+    env:
+      ENV: dev
+      CI: true
+      BASE_URL: https://www.brainpop.com/login/
+      BP_USERNAME: qatest2026
+      BP_PASSWORD: brainp0p
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Run CI suite
+        run: npm run test:ci -- --project=${{ matrix.browser }}
+      - name: Run demo failures
+        run: npm run test:demo-failures -- --project=${{ matrix.browser }}
+        continue-on-error: true
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-${{ matrix.browser }}
+          path: |
+            playwright-report/
+            feature-report/
+            test-results/
+            allure-results/
+            junit.xml
+            summary.json
+          if-no-files-found: ignore
+      - name: Notify Slack or Teams
+        if: always() && (secrets.SLACK_WEBHOOK_URL != '' || secrets.TEAMS_WEBHOOK_URL != '')
+        continue-on-error: true
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          payload="{\"text\":\"Playwright ${{ matrix.browser }}: $JOB_STATUS — ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then curl -sS -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"; fi
+          if [ -n "$TEAMS_WEBHOOK_URL" ]; then curl -sS -X POST -H 'Content-type: application/json' --data "$payload" "$TEAMS_WEBHOOK_URL"; fi
+
+  publish-report:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && github.event_name == 'push'
+    needs: e2e
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: playwright-chromium
+          path: artifact
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: artifact/playwright-report
+      - id: deployment
+        uses: actions/deploy-pages@v4
