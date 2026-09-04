@@ -10,6 +10,7 @@ test-results/
 junit.xml
 summary.json
 blob-report/
+all-blob-reports/
 playwright/.cache/
 *.log
 .DS_Store

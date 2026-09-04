@@ -7,13 +7,14 @@
   "description": "Playwright Test + Gherkin (playwright-bdd) framework for BrainPOP",
   "scripts": {
     "bddgen": "bddgen",
-    "test": "bddgen && playwright test",
-    "test:e2e": "bddgen && playwright test",
-    "test:smoke": "bddgen && playwright test --grep @smoke",
-    "test:a11y": "bddgen && playwright test --grep @a11y",
-    "test:ci": "bddgen && playwright test --grep-invert \"@failing|@visual|@known-issue\"",
-    "test:demo-failures": "bddgen && playwright test --grep \"@failing\"",
-    "test:mobile": "cross-env MOBILE=1 bddgen && playwright test --grep-invert \"@failing|@visual|@known-issue\"",
+    "gen": "node scripts/clean-reports.js && bddgen",
+    "test": "npm run gen && playwright test",
+    "test:e2e": "npm run gen && playwright test",
+    "test:smoke": "npm run gen && playwright test --grep @smoke",
+    "test:a11y": "npm run gen && playwright test --grep @a11y",
+    "test:ci": "npm run gen && playwright test --grep-invert \"@failing|@visual|@known-issue\"",
+    "test:demo-failures": "npm run gen && playwright test --grep \"@failing\"",
+    "test:mobile": "cross-env MOBILE=1 npm run gen && playwright test --grep-invert \"@failing|@visual|@known-issue\"",
     "report:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report",
     "report:html": "playwright show-report",
     "report:features": "node -e \"require('child_process').exec((process.platform==='win32'?'start ':process.platform==='darwin'?'open ':'xdg-open ')+'feature-report/index.html')\""
@@ -21,13 +22,11 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.62.1",
-    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.10.0",
     "allure-commandline": "^2.32.0",
     "allure-playwright": "^3.0.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
-    "js-yaml": "^4.1.0",
     "playwright-bdd": "^9.2.0",
     "typescript": "^5.7.2"
   }

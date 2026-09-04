@@ -48,6 +48,11 @@ export default class FeatureReporter implements Reporter {
     this.startedAt = new Date();
   }
 
+  // Writes files only, so Playwright is free to keep its own terminal output.
+  printsToStdio(): boolean {
+    return false;
+  }
+
   onEnd(result: FullResult): void {
     const run = this.buildRun(result);
 

@@ -146,6 +146,27 @@ production over whatever connection the runner has; tighten them once you have a
 `PERF_LIGHTHOUSE=1` is a documented extension point for a full Lighthouse run in CI; it
 currently logs a skip until `lighthouse`/`chrome-launcher` are wired up.
 
+## CI
+
+[`playwright.yml`](.github/workflows/playwright.yml) runs three jobs:
+
+1. **`e2e`** — a matrix over Chromium and Firefox. Each job emits a `blob` report (an
+   intermediate format) plus Allure results, rather than a finished report of its own.
+2. **`report`** — downloads every blob and runs `playwright merge-reports`, producing **one**
+   report that covers all browsers. Without this each browser produced a separate report and
+   only one of them ever reached GitHub Pages.
+3. **`publish-report`** — deploys the merged HTML report to Pages on the default branch.
+
+`ALLURE=0` in the merge step drops `allure-playwright` from the reporter list, because it
+reads per-project config that does not exist when replaying blobs. Allure loses nothing: its
+results directories from each browser are simply downloaded into one folder, which is already
+a valid merged input.
+
+`npm run test:demo-failures` is a local demonstration that the reporters capture failures. It
+is deliberately not a CI step — running it after the real suite used to overwrite
+`playwright-report/`, `junit.xml` and `summary.json`, so the published report described the
+two synthetic failures instead of the actual run.
+
 ## Remote providers
 
 CI uses local Chromium and Firefox. To point at a grid, set `REMOTE_PROVIDER` and `REMOTE_WS_ENDPOINT` (plus vendor keys). Capability builders live in `src/config/remote.ts`.

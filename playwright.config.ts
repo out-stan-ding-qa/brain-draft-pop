@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices, type ReporterDescription } from '@playwright/test';
 import { defineBddConfig } from 'playwright-bdd';
 import { env } from './src/config/env';
 import { remoteConnectOptions } from './src/config/remote';
@@ -7,6 +7,12 @@ const testDir = defineBddConfig({
   features: ['tests/e2e/**/*.feature', 'tests/api/**/*.feature'],
   steps: ['tests/**/steps/**/*.ts', 'src/fixtures/baseTest.ts'],
 });
+
+// allure-playwright reads per-project config that does not exist when replaying
+// blob reports, so it must stay out of the merge step. Allure needs no merging
+// anyway: results directories from each browser combine by plain union.
+const allureReporter: ReporterDescription[] =
+  process.env.ALLURE === '0' ? [] : [['allure-playwright', { resultsDir: 'allure-results' }]];
 
 const projects = [
   {
@@ -50,7 +56,7 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { open: 'never', outputFolder: 'playwright-report' }],
-    ['allure-playwright', { resultsDir: 'allure-results' }],
+    ...allureReporter,
     ['junit', { outputFile: 'junit.xml' }],
     ['./src/utils/reporting/featureReporter.ts', { outputFolder: 'feature-report', jsonFile: 'summary.json' }],
   ],

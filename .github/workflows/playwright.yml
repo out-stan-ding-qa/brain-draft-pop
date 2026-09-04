@@ -26,39 +26,100 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      # blob is an intermediate format that the report job merges into one
+      # report covering every browser. Allure rides along because it cannot
+      # take part in the merge, and its results combine by directory union.
       - name: Run CI suite
-        run: npm run test:ci -- --project=${{ matrix.browser }}
-      - name: Run demo failures
-        run: npm run test:demo-failures -- --project=${{ matrix.browser }}
-        continue-on-error: true
-      - name: Upload reports
+        run: npm run test:ci -- --project=${{ matrix.browser }} --reporter=blob,allure-playwright
+
+      - name: Upload blob report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-${{ matrix.browser }}
+          name: blob-${{ matrix.browser }}
+          path: blob-report/
+          retention-days: 1
+          if-no-files-found: ignore
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-${{ matrix.browser }}
+          path: allure-results/
+          retention-days: 1
+          if-no-files-found: ignore
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.browser }}
+          path: test-results/
+          if-no-files-found: ignore
+
+  report:
+    if: always()
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Collect blob reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: blob-*
+          merge-multiple: true
+          path: all-blob-reports
+
+      - name: Collect Allure results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-*
+          merge-multiple: true
+          path: allure-results
+
+      # ALLURE=0 drops allure-playwright from the reporter list: it reads
+      # per-project config that does not exist when replaying blob reports.
+      - name: Merge into a single report
+        env:
+          ALLURE: '0'
+        run: npx playwright merge-reports --config playwright.config.ts all-blob-reports
+
+      - name: Upload merged report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
           path: |
             playwright-report/
             feature-report/
-            test-results/
             allure-results/
             junit.xml
             summary.json
           if-no-files-found: ignore
+
       - name: Notify Slack or Teams
-        if: always() && (secrets.SLACK_WEBHOOK_URL != '' || secrets.TEAMS_WEBHOOK_URL != '')
+        if: always()
         continue-on-error: true
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          JOB_STATUS: ${{ job.status }}
+          JOB_STATUS: ${{ needs.e2e.result }}
         run: |
-          payload="{\"text\":\"Playwright ${{ matrix.browser }}: $JOB_STATUS — ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+          payload="{\"text\":\"Playwright: $JOB_STATUS — ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
           if [ -n "$SLACK_WEBHOOK_URL" ]; then curl -sS -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"; fi
           if [ -n "$TEAMS_WEBHOOK_URL" ]; then curl -sS -X POST -H 'Content-type: application/json' --data "$payload" "$TEAMS_WEBHOOK_URL"; fi
 
   publish-report:
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && github.event_name == 'push'
-    needs: e2e
+    needs: report
     runs-on: ubuntu-latest
     continue-on-error: true
     permissions:
@@ -70,7 +131,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: playwright-chromium
+          name: playwright-report
           path: artifact
       - uses: actions/upload-pages-artifact@v3
         with:
