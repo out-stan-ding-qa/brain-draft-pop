@@ -5,7 +5,7 @@ Feature: BrainPOP authentication
   Background:
     Given I am on the BrainPOP login page
 
-  @wip
+  @smoke
   Scenario: Successful login with valid credentials
     When I log in with valid credentials
     Then I should be logged in successfully
