@@ -1,6 +1,6 @@
 @failing
 Feature: Intentionally failing demos
-  Used to verify HTML, Allure, JUnit, and JSON reporters capture failures.
+  Used to verify HTML, JUnit, and JSON reporters capture failures.
   One demo fails on a mismatched value, the other on a missing element.
 
   Background:

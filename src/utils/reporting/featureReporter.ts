@@ -245,8 +245,8 @@ function describeTest(test: TestCase): {
 }
 
 /**
- * Allure's split: an assertion that did not hold is "failed", anything else that
- * stopped the test (thrown error, timeout) is "broken".
+ * An assertion that did not hold is "failed"; anything else that stopped the
+ * test (thrown error, timeout) is "broken".
  */
 function classify(result: TestResult | undefined): Bucket {
   switch (result?.status) {

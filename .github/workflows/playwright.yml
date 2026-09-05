@@ -26,10 +26,9 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
 
       # blob is an intermediate format that the report job merges into one
-      # report covering every browser. Allure rides along because it cannot
-      # take part in the merge, and its results combine by directory union.
+      # report covering every browser.
       - name: Run CI suite
-        run: npm run test:ci -- --project=${{ matrix.browser }} --reporter=blob,allure-playwright
+        run: npm run test:ci -- --project=${{ matrix.browser }} --reporter=blob
 
       - name: Upload blob report
         if: always()
@@ -37,15 +36,6 @@ jobs:
         with:
           name: blob-${{ matrix.browser }}
           path: blob-report/
-          retention-days: 1
-          if-no-files-found: ignore
-
-      - name: Upload Allure results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-${{ matrix.browser }}
-          path: allure-results/
           retention-days: 1
           if-no-files-found: ignore
 
@@ -76,18 +66,7 @@ jobs:
           merge-multiple: true
           path: all-blob-reports
 
-      - name: Collect Allure results
-        uses: actions/download-artifact@v4
-        with:
-          pattern: allure-*
-          merge-multiple: true
-          path: allure-results
-
-      # ALLURE=0 drops allure-playwright from the reporter list: it reads
-      # per-project config that does not exist when replaying blob reports.
       - name: Merge into a single report
-        env:
-          ALLURE: '0'
         run: npx playwright merge-reports --config playwright.config.ts all-blob-reports
 
       - name: Upload merged report
@@ -98,7 +77,6 @@ jobs:
           path: |
             playwright-report/
             feature-report/
-            allure-results/
             junit.xml
             summary.json
           if-no-files-found: ignore

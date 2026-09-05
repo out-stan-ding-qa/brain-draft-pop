@@ -1,7 +1,7 @@
 @perf
 Feature: Login page performance
   Navigation timings are captured from the browser's Performance API and published
-  to the HTML report, Allure, and summary.json so load regressions are visible
+  to the HTML report and summary.json so load regressions are visible
   rather than buried in a console log.
 
   Background:

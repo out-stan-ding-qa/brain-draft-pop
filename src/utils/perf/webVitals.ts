@@ -94,7 +94,7 @@ export function renderVitalsTable(vitals: NavigationVitals): string {
 }
 
 /**
- * Publishes metrics so they show up in the HTML report, Allure, and the custom
+ * Publishes metrics so they show up in the HTML report and the custom
  * JSON summary. Annotations give an at-a-glance view in the test list.
  */
 export async function publishVitals(testInfo: TestInfo, vitals: NavigationVitals): Promise<void> {

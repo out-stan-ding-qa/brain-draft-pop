@@ -6,7 +6,7 @@
   },
   "description": "Playwright Test + Gherkin (playwright-bdd) framework for BrainPOP",
   "scripts": {
-    "gen": "node scripts/clean-reports.js && bddgen",
+    "gen": "bddgen",
     "test": "npm run gen && playwright test",
     "test:e2e": "npm test",
     "test:smoke": "npm run gen && playwright test --grep @smoke",
@@ -19,8 +19,6 @@
     "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.62.1",
     "@types/node": "^22.10.0",
-    "allure-commandline": "^2.32.0",
-    "allure-playwright": "^3.0.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
     "playwright-bdd": "^9.2.0",

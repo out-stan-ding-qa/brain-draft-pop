@@ -1,4 +1,4 @@
-import { defineConfig, devices, type ReporterDescription } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 import { defineBddConfig } from 'playwright-bdd';
 import { env } from './src/config/env';
 
@@ -6,9 +6,6 @@ const testDir = defineBddConfig({
   features: ['tests/e2e/**/*.feature', 'tests/api/**/*.feature'],
   steps: ['tests/**/steps/**/*.ts', 'src/fixtures/baseTest.ts'],
 });
-
-const allureReporter: ReporterDescription[] =
-  process.env.ALLURE === '0' ? [] : [['allure-playwright', { resultsDir: 'allure-results' }]];
 
 const projects = [
   { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
@@ -31,7 +28,6 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { open: 'never', outputFolder: 'playwright-report' }],
-    ...allureReporter,
     ['junit', { outputFile: 'junit.xml' }],
     ['./src/utils/reporting/featureReporter.ts', { outputFolder: 'feature-report', jsonFile: 'summary.json' }],
   ],
