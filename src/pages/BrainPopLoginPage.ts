@@ -123,7 +123,6 @@ export class BrainPopLoginPage {
       throw new Error('Expected login to succeed, but it was rejected');
     }
     await this.passProductPickerIfShown();
-    await this.page.waitForURL(/\/teacher\/?/, { timeout: 20_000 });
   }
 
   /**
@@ -132,19 +131,17 @@ export class BrainPopLoginPage {
    */
   private async passProductPickerIfShown(): Promise<void> {
     const picker = new ProductPicker(this.page);
-    const reachedTeacher = this.page
-      .waitForURL(/\/teacher\/?/, { timeout: 20_000 })
-      .then(() => 'teacher' as const)
-      .catch(() => 'timeout' as const);
-    const pickerShown = picker.goTo
-      .waitFor({ state: 'visible', timeout: 20_000 })
-      .then(() => 'picker' as const)
-      .catch(() => 'timeout' as const);
-
-    const first = await Promise.race([reachedTeacher, pickerShown]);
-    if (first === 'picker' || (await picker.goTo.isVisible())) {
-      await picker.chooseBrainPopScience();
+    const shown =
+      (await picker.isVisible()) ||
+      (await picker.hub.waitFor({ state: 'visible', timeout: 5_000 }).then(() => true).catch(() => false));
+    if (!shown) {
+      return;
     }
+    await picker.chooseBrainPopScience();
+    await this.page.waitForURL(/science\.brainpop\.com|\/teacher\/?/, {
+      timeout: 20_000,
+      waitUntil: 'domcontentloaded',
+    });
   }
 }
 
