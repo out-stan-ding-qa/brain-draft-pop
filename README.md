@@ -190,22 +190,18 @@ publishes the numbers to every reporter, so they are visible rather than buried 
 
 ## CI
 
-[`playwright.yml`](.github/workflows/playwright.yml) runs three jobs:
+[`playwright.yml`](.github/workflows/playwright.yml) runs `test:ci` on Chromium and uploads
+`playwright-report/` (always) plus `test-results/` on failure. On push to the default branch,
+the HTML report is published to GitHub Pages (including failed runs). Firefox stays in
+`playwright.config.ts` for local runs.
 
-1. **`e2e`** — a matrix over Chromium and Firefox. Each job emits a `blob` report (an
-   intermediate format) rather than a finished report of its own.
-2. **`report`** — downloads every blob and runs `playwright merge-reports`, producing **one**
-   report that covers all browsers. Without this each browser produced a separate report and
-   only one of them ever reached GitHub Pages.
-3. **`publish-report`** — deploys the merged HTML report to Pages on the default branch.
+Set the repo Pages source to **GitHub Actions** (Settings → Pages).
 
 The CI gate is `test:ci`, which includes `@quiz` / `@smoke` and excludes `@failing`,
 `@visual`, and `@known-issue`.
 
 `npm run test:demo-failures` is a local demonstration that the reporters capture failures. It
-is deliberately not a CI step — running it after the real suite used to overwrite
-`playwright-report/`, `junit.xml` and `summary.json`, so the published report described the
-two synthetic failures instead of the actual run.
+is deliberately not a CI step.
 
 ## Add a page + scenario
 

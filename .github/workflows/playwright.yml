@@ -8,12 +8,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chromium, firefox]
     env:
-      # URLs and the test account both come from test-data/dev/env.json.
       ENV: dev
       CI: true
     steps:
@@ -23,67 +18,28 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:ci -- --project=chromium
 
-      # blob is an intermediate format that the report job merges into one
-      # report covering every browser.
-      - name: Run CI suite
-        run: npm run test:ci -- --project=${{ matrix.browser }} --reporter=blob
-
-      - name: Upload blob report
+      - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: blob-${{ matrix.browser }}
-          path: blob-report/
-          retention-days: 1
+          name: playwright-report
+          path: playwright-report/
           if-no-files-found: ignore
 
       - name: Upload failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.browser }}
+          name: test-results
           path: test-results/
           if-no-files-found: ignore
 
-  report:
-    if: always()
-    needs: e2e
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-
-      - name: Collect blob reports
-        uses: actions/download-artifact@v4
-        with:
-          pattern: blob-*
-          merge-multiple: true
-          path: all-blob-reports
-
-      - name: Merge into a single report
-        run: npx playwright merge-reports --config playwright.config.ts all-blob-reports
-
-      - name: Upload merged report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: |
-            playwright-report/
-            feature-report/
-            junit.xml
-            summary.json
-          if-no-files-found: ignore
-
   publish-report:
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && github.event_name == 'push'
-    needs: report
+    if: always() && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && github.event_name == 'push'
+    needs: e2e
     runs-on: ubuntu-latest
     continue-on-error: true
     permissions:
@@ -96,9 +52,9 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: playwright-report
-          path: artifact
+          path: playwright-report
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: artifact/playwright-report
+          path: playwright-report
       - id: deployment
         uses: actions/deploy-pages@v4

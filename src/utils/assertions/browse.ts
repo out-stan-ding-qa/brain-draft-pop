@@ -17,7 +17,7 @@ export async function expectTeacherDashboard(
   const cookies = new CookieBanner(dashboard.page);
   await cookies.dismissIfPresent();
   await cookies.dismissCookieHubIfPresent();
-  await expect(dashboard.subjectsHeading.or(dashboard.subjects.first())).toBeVisible({ timeout: 20_000 });
+  await expect(dashboard.subjectsHeading).toBeVisible({ timeout: 20_000 });
   await expect(dashboard.subjects.first()).toBeVisible({ timeout: 20_000 });
 }
 
