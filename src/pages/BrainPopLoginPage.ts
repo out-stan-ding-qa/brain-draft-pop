@@ -2,6 +2,7 @@ import { expect, type Locator, type Page, type Response } from '@playwright/test
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
 import { CookieBanner } from './components/CookieBanner';
+import { ProductPicker } from './components/ProductPicker';
 
 const TOO_MANY_REQUESTS = 429;
 
@@ -121,7 +122,29 @@ export class BrainPopLoginPage {
     if (outcome !== 'accepted') {
       throw new Error('Expected login to succeed, but it was rejected');
     }
+    await this.passProductPickerIfShown();
     await this.page.waitForURL(/\/teacher\/?/, { timeout: 20_000 });
+  }
+
+  /**
+   * Some accounts land on a "Go To" product hub instead of /teacher.
+   * Check "don't show again" and open BrainPOP Science when that hub appears.
+   */
+  private async passProductPickerIfShown(): Promise<void> {
+    const picker = new ProductPicker(this.page);
+    const reachedTeacher = this.page
+      .waitForURL(/\/teacher\/?/, { timeout: 20_000 })
+      .then(() => 'teacher' as const)
+      .catch(() => 'timeout' as const);
+    const pickerShown = picker.goTo
+      .waitFor({ state: 'visible', timeout: 20_000 })
+      .then(() => 'picker' as const)
+      .catch(() => 'timeout' as const);
+
+    const first = await Promise.race([reachedTeacher, pickerShown]);
+    if (first === 'picker' || (await picker.goTo.isVisible())) {
+      await picker.chooseBrainPopScience();
+    }
   }
 }
 
