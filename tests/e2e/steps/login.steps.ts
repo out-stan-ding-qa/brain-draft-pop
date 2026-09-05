@@ -21,10 +21,14 @@ When('I log in with valid credentials', async ({ loginPage }) => {
 When(
   'I log in with a {string} username and a {string} password',
   async ({ loginPage, testData }, userKind: string, passKind: string) => {
-    await loginPage.login(
-      resolveUsername(userKind, testData.login),
-      resolvePassword(passKind, testData.login),
-    );
+    const username = resolveUsername(userKind, testData.login);
+    const password = resolvePassword(passKind, testData.login);
+    // Blank fields never POST, so do not wait on the auth endpoint.
+    if (!username || !password) {
+      await loginPage.login(username, password);
+      return;
+    }
+    await loginPage.loginUntilSettled(username, password);
   },
 );
 

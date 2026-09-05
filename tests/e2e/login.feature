@@ -1,4 +1,4 @@
-@login
+@login @mode:default
 Feature: BrainPOP authentication
   Validate signing in, rejection of bad or incomplete credentials, and ending the session.
 

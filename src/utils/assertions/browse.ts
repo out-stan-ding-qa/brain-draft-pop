@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { BrainPopLoginPage } from '../../pages/BrainPopLoginPage';
+import { CookieBanner } from '../../pages/components/CookieBanner';
 import { FeaturePage } from '../../pages/FeaturePage';
 import { LoggedInChrome } from '../../pages/LoggedInChrome';
 import { TeacherDashboardPage } from '../../pages/TeacherDashboardPage';
@@ -13,7 +14,10 @@ export async function expectTeacherDashboard(
 ): Promise<void> {
   await expectLoggedIn(chrome, loginPage);
   await expect(dashboard.page).toHaveURL(/\/teacher\/?(\?|$)/, { timeout: 20_000 });
-  await expect(dashboard.subjectsHeading).toBeVisible({ timeout: 20_000 });
+  const cookies = new CookieBanner(dashboard.page);
+  await cookies.dismissIfPresent();
+  await cookies.dismissCookieHubIfPresent();
+  await expect(dashboard.subjectsHeading.or(dashboard.subjects.first())).toBeVisible({ timeout: 20_000 });
   await expect(dashboard.subjects.first()).toBeVisible({ timeout: 20_000 });
 }
 

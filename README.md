@@ -111,9 +111,9 @@ from `test:ci` for this reason.
 ### Rate limiting
 
 The suite authenticates a single shared QA account against production, and that endpoint
-throttles bursts of login attempts. Worker count is capped for that reason, the `@api`
-feature runs in-file sequentially (`@mode:default`), `LoginApi` backs off on HTTP 429,
-and the UI `loginUntilAccepted` helper re-submits when a throttled post leaves the form
+throttles bursts of login attempts. CI runs one worker per browser job for that reason, the `@api`
+and login UI features run in-file sequentially (`@mode:default`), `LoginApi` backs off on HTTP 429,
+and the UI `loginUntilSettled` helper re-submits when a throttled post leaves the form
 unchanged.
 
 ## Topic features

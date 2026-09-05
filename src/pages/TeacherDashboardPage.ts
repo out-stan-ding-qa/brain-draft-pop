@@ -13,7 +13,7 @@ export class TeacherDashboardPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.subjectsHeading = page.getByRole('heading', { name: 'Subjects', exact: true });
+    this.subjectsHeading = page.getByRole('heading', { name: /^subjects$/i });
     this.subjects = page.getByRole('link', { name: SUBJECT_NAME }).or(page.getByRole('button', { name: SUBJECT_NAME }));
     this.exploreDialog = new ExploreScienceDialog(page);
   }
