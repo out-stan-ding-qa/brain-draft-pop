@@ -123,11 +123,12 @@ export class BrainPopLoginPage {
       throw new Error('Expected login to succeed, but it was rejected');
     }
     await this.passProductPickerIfShown();
+    await this.ensureTeacherDashboard();
   }
 
   /**
    * Some accounts land on a "Go To" product hub instead of /teacher.
-   * Check "don't show again" and open BrainPOP Science when that hub appears.
+   * When it appears, persist BrainPOP (Grades 3-8) as the default.
    */
   private async passProductPickerIfShown(): Promise<void> {
     const picker = new ProductPicker(this.page);
@@ -137,11 +138,16 @@ export class BrainPopLoginPage {
     if (!shown) {
       return;
     }
-    await picker.chooseBrainPopScience();
-    await this.page.waitForURL(/science\.brainpop\.com|\/teacher\/?/, {
-      timeout: 20_000,
-      waitUntil: 'domcontentloaded',
-    });
+    await picker.chooseBrainPop();
+  }
+
+  /** Hub default may be another product (e.g. Science). Always finish on /teacher. */
+  private async ensureTeacherDashboard(): Promise<void> {
+    if (/\/teacher\/?(\?|$)/.test(this.page.url())) {
+      return;
+    }
+    await this.page.goto(new URL('/teacher/', env.baseURL).href, { waitUntil: 'domcontentloaded' });
+    await this.page.waitForURL(/\/teacher\/?/, { timeout: 20_000, waitUntil: 'domcontentloaded' });
   }
 }
 
