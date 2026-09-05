@@ -8,7 +8,10 @@ export class LoggedInChrome {
 
   constructor(page: Page, accountName: string) {
     this.page = page;
-    this.accountName = page.getByRole('banner').getByRole('button', { name: accountName, exact: true });
+    this.accountName = page
+      .getByRole('banner')
+      .getByRole('button', { name: accountName, exact: true })
+      .or(page.getByRole('button', { name: accountName, exact: true }));
     this.userMenu = page.locator('#user_menu__BV_toggle_');
     this.logOut = page.locator('#logout_button');
   }

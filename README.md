@@ -67,7 +67,7 @@ npx playwright test --grep @login --grep-invert @logout
 | Feature | File | Typical filter |
 | --- | --- | --- |
 | Login UI | [`tests/e2e/login.feature`](tests/e2e/login.feature) | `@login`, `@logout` |
-| Teacher quiz browse | [`tests/e2e/quiz.feature`](tests/e2e/quiz.feature) | `@quiz`, `@smoke` |
+| Teacher topic features | [`tests/e2e/quiz.feature`](tests/e2e/quiz.feature) | `@quiz`, `@smoke` |
 | Login API | [`tests/api/login-api.feature`](tests/api/login-api.feature) | `@api` |
 | Accessibility | [`tests/e2e/accessibility.feature`](tests/e2e/accessibility.feature) | `@a11y` |
 | Performance | [`tests/e2e/performance.feature`](tests/e2e/performance.feature) | `@perf` |
@@ -76,10 +76,10 @@ npx playwright test --grep @login --grep-invert @logout
 
 | Tag | Meaning |
 | --- | --- |
-| `@smoke` | Core happy paths (successful login, quiz browse) |
+| `@smoke` | Core happy paths (successful login, Mountains Quiz, random Feature browse) |
 | `@login` | UI authentication feature |
 | `@logout` | End-session scenario on the login feature |
-| `@quiz` | Teacher path from the dashboard to a topic Quiz |
+| `@quiz` | Topic Feature coverage (Quiz today; other Features reuse the same steps) |
 | `@negative` | Rejected or incomplete input |
 | `@a11y` / `@perf` | Accessibility and web vitals |
 | `@api` | Direct calls to the authentication endpoint |
@@ -88,7 +88,7 @@ npx playwright test --grep @login --grep-invert @logout
 | `@known-issue` | Genuine product defect, kept visible but outside the CI gate |
 
 `@mode:default` is a playwright-bdd execution tag. It runs those scenarios in order in one worker (overriding `fullyParallel`) without skipping later cases when one fails.
-`@timeout:N` (milliseconds) is a playwright-bdd execution tag. On a scenario it overrides Playwright’s test timeout for that test only; on a Feature it applies to each scenario in the file. It does not change `expect` or `actionTimeout`. The quiz scenario uses `@timeout:180000` (3 minutes). Background steps count toward that same budget.
+`@timeout:N` (milliseconds) is a playwright-bdd execution tag. On a scenario it overrides Playwright’s test timeout for that test only; on a Feature it applies to each scenario in the file. It does not change `expect` or `actionTimeout`. The random-browse Feature scenario uses `@timeout:180000` (3 minutes). Background steps count toward that same budget.
 
 ### Visual baselines
 
@@ -111,24 +111,23 @@ from `test:ci` for this reason.
 ### Rate limiting
 
 The suite authenticates a single shared QA account against production, and that endpoint
-throttles bursts of login attempts. Worker count is capped for that reason, the `@api`
-feature runs in-file sequentially (`@mode:default`), `LoginApi` backs off on HTTP 429,
-and the UI `loginUntilAccepted` helper re-submits when a throttled post leaves the form
+throttles bursts of login attempts. CI runs one worker per browser job for that reason, the `@api`
+and login UI features run in-file sequentially (`@mode:default`), `LoginApi` backs off on HTTP 429,
+and the UI `loginUntilSettled` helper re-submits when a throttled post leaves the form
 unchanged.
 
-## Teacher quiz browse
+## Topic features
 
-[`tests/e2e/quiz.feature`](tests/e2e/quiz.feature) is the post-login happy path:
+[`tests/e2e/quiz.feature`](tests/e2e/quiz.feature) covers opening a Feature on a Topic page. Quiz is one parameterized example of that Feature API (`openFeature(name)` / `expectFeatureLoaded({ name, pathSegment })`), not a Quiz-only page object.
 
-1. Sign in.
-2. Assert the teacher dashboard (`/teacher`, Subjects list, account chrome).
-3. Open a **random** subject, then a random unit, then a random topic.
-4. Open the Assessment **Quiz** card.
-5. Assert the quiz landing page loaded: URL `/topic/{slug}/quiz/`, heading **Quiz**, **Preview** button.
+Two paths after sign-in:
 
-Science is the only subject that opens **What would you like to explore?** The page object then clicks **Science topics on BrainPOP**. Other subjects skip that dialog. Page-object methods still accept an optional name (`openSubject('Math')`) for a later named Gherkin step.
+1. **Known topic** — open Mountains from [`test-data/browse.json`](test-data/browse.json), then open Quiz.
+2. **Random browse** — teacher dashboard → random subject → unit → topic → Feature. Science is the only subject that opens **What would you like to explore?**; the page object then clicks **Science topics on BrainPOP**. Other subjects skip that dialog.
 
-Locators live on the page objects (`TeacherDashboardPage`, `SubjectPage`, `UnitPage`, `TopicPage`, `QuizPage`). 
+To cover another Feature (Challenge, Movie, …), add an Examples row and, if the URL slug is not the card name lowercased, a `features` entry in `browse.json`. To open a named topic, add it under `topics` and use `When I open the "Name" topic`.
+
+Locators live on the page objects (`TeacherDashboardPage`, `SubjectPage`, `UnitPage`, `TopicPage`, `FeaturePage`).
 Assertions live in [`src/utils/assertions/browse.ts`](src/utils/assertions/browse.ts).
 
 ## Configuration
@@ -191,22 +190,18 @@ publishes the numbers to every reporter, so they are visible rather than buried 
 
 ## CI
 
-[`playwright.yml`](.github/workflows/playwright.yml) runs three jobs:
+[`playwright.yml`](.github/workflows/playwright.yml) runs `test:ci` on Chromium and uploads
+`playwright-report/` (always) plus `test-results/` on failure. On push to the default branch,
+the HTML report is published to GitHub Pages (including failed runs). Firefox stays in
+`playwright.config.ts` for local runs.
 
-1. **`e2e`** — a matrix over Chromium and Firefox. Each job emits a `blob` report (an
-   intermediate format) rather than a finished report of its own.
-2. **`report`** — downloads every blob and runs `playwright merge-reports`, producing **one**
-   report that covers all browsers. Without this each browser produced a separate report and
-   only one of them ever reached GitHub Pages.
-3. **`publish-report`** — deploys the merged HTML report to Pages on the default branch.
+Set the repo Pages source to **GitHub Actions** (Settings → Pages).
 
 The CI gate is `test:ci`, which includes `@quiz` / `@smoke` and excludes `@failing`,
 `@visual`, and `@known-issue`.
 
 `npm run test:demo-failures` is a local demonstration that the reporters capture failures. It
-is deliberately not a CI step — running it after the real suite used to overwrite
-`playwright-report/`, `junit.xml` and `summary.json`, so the published report described the
-two synthetic failures instead of the actual run.
+is deliberately not a CI step.
 
 ## Add a page + scenario
 
@@ -215,4 +210,4 @@ two synthetic failures instead of the actual run.
 3. Add a `.feature` under `tests/e2e/` or `tests/api/` and steps under `tests/**/steps/` using `Given`/`When`/`Then`.
 4. Put shared data in `test-data/` and env-specific values in `test-data/<env>/` (`env.json` for the URLs and the test account, plus any overrides of shared files). 
 5. Keep locators out of Gherkin; keep assertions in `src/utils/assertions/`. 
-6. Resolve valid / invalid / blank credentials through [`src/utils/credentials.ts`](src/utils/credentials.ts), not in the feature file. For “named or random” clicks, reuse [`src/utils/pickRandom.ts`](src/utils/pickRandom.ts).
+6. Resolve valid / invalid / blank credentials through [`src/utils/credentials.ts`](src/utils/credentials.ts), not in the feature file. For “named or random” clicks, reuse [`src/utils/pickRandom.ts`](src/utils/pickRandom.ts). Named topics and Feature URL slugs live in [`test-data/browse.json`](test-data/browse.json).

@@ -29,6 +29,15 @@ export class CookieBanner {
     await this.banner.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => undefined);
   }
 
+  async dismissCookieHubIfPresent(): Promise<void> {
+    if (!(await this.cookieHubAllowAll.isVisible())) {
+      return;
+    }
+
+    await this.cookieHubAllowAll.click();
+    await this.cookieHubAllowAll.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => undefined);
+  }
+
   async dismissCookieHub(): Promise<void> {
     const visible = await this.cookieHubAllowAll
       .waitFor({ state: 'visible', timeout: 8_000 })

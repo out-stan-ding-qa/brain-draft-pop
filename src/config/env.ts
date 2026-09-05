@@ -84,7 +84,7 @@ export const env = {
   isCi,
   // The shared QA account is rate-limited, so cap concurrent logins instead of
   // letting Playwright default to one worker per two CPU cores.
-  workers: process.env.WORKERS ? parsePositiveInt(process.env.WORKERS, 4) : isCi ? 2 : 2,
+  workers: process.env.WORKERS ? parsePositiveInt(process.env.WORKERS, 4) : isCi ? 1 : 1,
   retries: parsePositiveInt(process.env.RETRIES, isCi ? 2 : 0),
 };
 

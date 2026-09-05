@@ -1,5 +1,5 @@
 {
   "invalidUsername": "not_a_real_brainpop_user_xyz",
   "wrongPassword": "definitely-wrong-password",
-  "loginErrorPattern": "did not match|do not match|incorrect|invalid|try again|couldn’t find|could not"
+  "loginErrorPattern": "did not match|do not match|does not match|incorrect|invalid|try again|couldn’t find|couldn't find|could not|unable to|too many"
 }

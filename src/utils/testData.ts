@@ -24,11 +24,17 @@ export type PerformanceBudget = {
   firstContentfulPaintMs?: number;
 };
 
+export type BrowseTestData = {
+  topics: Record<string, { path: string }>;
+  features: Record<string, { pathSegment: string }>;
+};
+
 export type AppTestData = {
   env: string;
   login: LoginTestData;
   api: ApiTestData;
   performance: PerformanceBudget;
+  browse: BrowseTestData;
 };
 
 function readJsonIfExists(filePath: string): unknown | undefined {
@@ -60,5 +66,6 @@ export function loadTestData(): AppTestData {
     login: readRequired<LoginTestData>('login.json'),
     api: readRequired<ApiTestData>('api.json'),
     performance: readRequired<PerformanceBudget>('performance.json'),
+    browse: readRequired<BrowseTestData>('browse.json'),
   };
 }
