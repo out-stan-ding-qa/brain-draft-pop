@@ -1,0 +1,8 @@
+{
+  "topics": {
+    "Mountains": { "path": "/science/earthsystem/mountains/" }
+  },
+  "features": {
+    "Quiz": { "pathSegment": "quiz" }
+  }
+}

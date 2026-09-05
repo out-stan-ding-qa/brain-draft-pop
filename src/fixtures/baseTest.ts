@@ -2,7 +2,7 @@ import { test as bddTest, createBdd } from 'playwright-bdd';
 import { requireAccountName } from '../config/env';
 import { BrainPopLoginPage } from '../pages/BrainPopLoginPage';
 import { LoggedInChrome } from '../pages/LoggedInChrome';
-import { QuizPage } from '../pages/QuizPage';
+import { FeaturePage } from '../pages/FeaturePage';
 import { SubjectPage } from '../pages/SubjectPage';
 import { TeacherDashboardPage } from '../pages/TeacherDashboardPage';
 import { TopicPage } from '../pages/TopicPage';
@@ -19,7 +19,7 @@ type CustomFixtures = {
   subjectPage: SubjectPage;
   unitPage: UnitPage;
   topicPage: TopicPage;
-  quizPage: QuizPage;
+  featurePage: FeaturePage;
   testData: AppTestData;
   api: ApiClient;
   loginApi: LoginApi;
@@ -45,8 +45,8 @@ export const test = bddTest.extend<CustomFixtures>({
   topicPage: async ({ page }, use) => {
     await use(new TopicPage(page));
   },
-  quizPage: async ({ page }, use) => {
-    await use(new QuizPage(page));
+  featurePage: async ({ page }, use) => {
+    await use(new FeaturePage(page));
   },
   testData: async ({}, use) => {
     await use(loadTestData());

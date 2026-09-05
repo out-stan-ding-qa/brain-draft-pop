@@ -1,8 +1,9 @@
 import { expect } from '@playwright/test';
 import { BrainPopLoginPage } from '../../pages/BrainPopLoginPage';
+import { FeaturePage } from '../../pages/FeaturePage';
 import { LoggedInChrome } from '../../pages/LoggedInChrome';
-import { QuizPage } from '../../pages/QuizPage';
 import { TeacherDashboardPage } from '../../pages/TeacherDashboardPage';
+import { escapeRegExp } from '../feature';
 import { expectLoggedIn } from './login';
 
 export async function expectTeacherDashboard(
@@ -16,8 +17,13 @@ export async function expectTeacherDashboard(
   await expect(dashboard.subjects.first()).toBeVisible({ timeout: 20_000 });
 }
 
-export async function expectQuizLoaded(quizPage: QuizPage): Promise<void> {
-  await expect(quizPage.page).toHaveURL(/\/topic\/[^/?#]+\/quiz\/?/, { timeout: 20_000 });
-  await expect(quizPage.heading).toBeVisible({ timeout: 20_000 });
-  await expect(quizPage.preview).toBeVisible();
+export async function expectFeatureLoaded(
+  featurePage: FeaturePage,
+  { name, pathSegment }: { name: string; pathSegment: string },
+): Promise<void> {
+  const segment = escapeRegExp(pathSegment);
+  await expect(featurePage.page).toHaveURL(new RegExp(`/topic/[^/?#]+/${segment}/?(\\?|$)`), {
+    timeout: 20_000,
+  });
+  await expect(featurePage.heading(name)).toBeVisible({ timeout: 20_000 });
 }
